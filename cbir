@@ -1,0 +1,45 @@
+import tkinter as tk
+import requests
+from io import BytesIO
+from PIL import Image, ImageTk
+
+class ImageSearchGUI:
+    def __init__(self, master):
+        self.master = master
+        master.title("Image Search")
+
+        # Create label and entry widgets for user input
+        self.label = tk.Label(master, text="Enter search term:")
+        self.label.pack()
+        self.entry = tk.Entry(master)
+        self.entry.pack()
+
+        # Create button widget for search
+        self.button = tk.Button(master, text="Search", command=self.search_images)
+        self.button.pack()
+
+        # Create canvas widget for displaying search results
+        self.canvas = tk.Canvas(master, width=500, height=500)
+        self.canvas.pack()
+
+    def search_images(self):
+        search_term = self.entry.get()
+        url = f"https://api.unsplash.com/search/photos?query={search_term}&client_id=(ENTER YOUR ACESS KEY HERE)"
+
+        # Make API request to Unsplash and get response
+        response = requests.get(url)
+        data = response.json()
+
+        # Get first image from response and display it on canvas
+        image_url = data["results"][0]["urls"]["regular"]
+        image_response = requests.get(image_url)
+        img = Image.open(BytesIO(image_response.content))
+        img = img.resize((500, 500), Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(img)
+        self.canvas.create_image(0, 0, anchor="nw", image=photo)
+        self.canvas.image = photo
+
+# Create tkinter window and run GUI
+root = tk.Tk()
+gui = ImageSearchGUI(root)
+root.mainloop()
